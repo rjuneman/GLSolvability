@@ -4,6 +4,8 @@
 [![Zulip : Topic](https://img.shields.io/badge/Zulip-Topic-%237E57C2.svg?logo=zulip&logoColor=white)](https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/Tutorial.3A.20Getting.20Started.20with.20Blueprint-Driven.20Projects)
 [![YouTube : Tutorial](https://img.shields.io/badge/YouTube-Tutorial-%23FF0000.svg?logo=youtube&logoColor=white)](https://youtu.be/KyuyTsLgkMY)
 
+Work in progress. Statements have not yet been fully reviewed.
+
 This repository contains a template for blueprint-driven formalization projects in Lean 4.
 
 ## Install Lean 4
