@@ -44,8 +44,9 @@ will depart from the paper, and Section~\ref{sec:open} records the author's revi
   \item $\Delta = \partial_{x_1}^2 + \partial_{x_2}^2$, acting on real-, complex- or $\R^m$-valued
         functions componentwise (for complex-valued functions, on real and imaginary parts
         separately).
-  \item For $u, v \colon \R^2 \to \C$, $\ip{u}{v} := \Re \int_{\R^2} u\,\overline{v}\,dx$
-        (Lebesgue measure on $\R^2$), whenever $u\overline v$ is integrable.
+  \item For $u, v \colon \R^2 \to \C$, $\ip{u}{v} := \int_{\R^2} \Re\bigl(u\,\overline{v}\bigr)\,dx$
+        (Lebesgue measure on $\R^2$), whenever $\Re(u\overline v)$ is integrable. When
+        $u\overline v$ itself is integrable, this is $\Re \int_{\R^2} u\,\overline{v}\,dx$.
   \item $C^2(\Omega)$: functions $\Omega \to \C$ (or $\R^m$) whose partial derivatives up to
         order two exist and are continuous on the open set $\Omega$.
   \item A function $h \colon \R^2 \to \C$ is \emph{locally H\"older continuous} if there is
@@ -96,8 +97,9 @@ $c_0, c_1, c_2 \in \R$.
 \end{assumption}
 
 \begin{assumption}[A2: Dirichlet problem for scalar operators; Gilbarg--Trudinger, Thm~6.13]
-Let $\Omega \subset \R^2$ be a bounded open set satisfying an exterior sphere condition: for every
-$y \in \partial\Omega$ there is a closed disc $D$ with $D \cap \overline\Omega = \{y\}$. Let
+Let $\Omega \subset \R^2$ be a bounded domain (a nonempty, connected, bounded open set) satisfying
+an exterior sphere condition: for every $y \in \partial\Omega$ there is a closed disc $D$ of positive
+radius with $D \cap \overline\Omega = \{y\}$. Let
 $b \colon \Omega \to \R^2$ and $c, f \colon \Omega \to \R$ be bounded and locally H\"older continuous,
 with $c \le 0$. Then for every continuous $g \colon \partial\Omega \to \R$ there is
 $u \in C^2(\Omega) \cap C(\overline\Omega)$ with
@@ -158,14 +160,20 @@ $\nss{\cdot}$ is of $h$ itself, which needs no division.
 
 \begin{definition}[Orthogonality (1.12)]
 $h$ \emph{satisfies the orthogonality conditions} if, for $j = 1, 2$, the function
-$h\,\overline{\partial_{x_j} W}$ is integrable on $\R^2$ and
-$\ip{h}{\partial_{x_j} W} = \Re\int_{\R^2} h\,\overline{\partial_{x_j} W}\,dx = 0$.
+$\Re\bigl(h\,\overline{\partial_{x_j} W}\bigr)$ is integrable on $\R^2$ and
+$\ip{h}{\partial_{x_j} W} = \int_{\R^2} \Re\bigl(h\,\overline{\partial_{x_j} W}\bigr)\,dx = 0$.
 \end{definition}
 
 \noindent
 Integrability is automatic when $\nss{h} < \infty$ (the integrand is bounded near $0$ and
 $O(r^{-3})$ at infinity by (P4)); it is written into the definition so that the condition never
 depends on how Lean treats non-integrable functions (Lean's integral of such a function is $0$).
+Only the real part is required to be integrable. Writing $\partial_{x_j} W = iW(\chi_1 + i\chi_2)$,
+with $\chi_1 = O(r^{-1})$ and $\chi_2 = O(r^{-3})$, we have
+$h\,\overline{\partial_{x_j} W} = |W|^2\bigl[(h_1\chi_1 + h_2\chi_2) + i(h_2\chi_1 - h_1\chi_2)\bigr]$.
+The real part is $O(r^{-3})$, but the imaginary part is in general only $O(r^{-1})$, since $h_2$ is
+merely bounded; for example, $h\,\overline{\partial_{x_j} W}$ is not integrable when
+$h = -W\cos 3\theta$ for $|x| \ge 3$.
 No condition $\ip{h}{iW} = 0$ is imposed (Remark~1.2 of the paper explains why).
 
 \section{The theorems}\label{sec:theorems}
@@ -249,6 +257,12 @@ following points, where the paper cites a specific result or says ``standard''.
         only (P) and (A1) concern this particular equation (agreed 24 Nov 2026).
   \item The changes to the proof listed in Section~\ref{sec:route} are approved (author,
         24 Nov 2026).
+  \item The pairing in Section~\ref{sec:setting}(iii) and the orthogonality conditions (1.12)
+        use $\int \Re\bigl(h\,\overline{\partial_{x_j} W}\bigr)$, requiring only the real part to be
+        integrable (author, 24 Nov 2026).
+  \item (A2) is stated for bounded domains (nonempty, connected, bounded open sets), with
+        exterior discs of positive radius; (A4) keeps the conclusion that $Pu = f$ holds pointwise
+        (author, 24 Nov 2026).
 \end{enumerate}
 
 \end{document}
