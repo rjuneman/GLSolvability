@@ -1,0 +1,254 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,enumitem}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\renewcommand{\thetheorem}{\Alph{theorem}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem*{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem*{note}{Note}
+
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\nstar}[1]{\lVert #1\rVert_{*}}
+\newcommand{\nss}[1]{\lVert #1\rVert_{**}}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+
+\title[Informal statements for the GLSolvability formalisation]{Informal statements for the formalisation of\\
+Theorem~1.1 and Remark~1.2}
+\date{Approved by the author, 24 November 2026}
+
+\begin{document}
+\maketitle
+
+\noindent
+This note states, with every definition explicit, what the Lean formalisation will prove.
+It follows M.~del Pino, R.~Juneman, M.~Musso, \emph{Solvability for the Ginzburg--Landau
+equation linearized at the degree-one vortex}, J.~Funct.\ Anal.\ 289 (2025) 111105
+(``the paper''). Theorem~\ref{thm:A} is Theorem~1.1 of the paper and Theorem~\ref{thm:B} is
+Remark~1.2. The file \texttt{Challenge.lean} will be a direct translation of
+Sections~\ref{sec:setting}--\ref{sec:theorems}. Section~\ref{sec:route} lists where the proof
+will depart from the paper, and Section~\ref{sec:open} records the author's review.
+
+\section{Setting and notation}\label{sec:setting}
+
+\begin{enumerate}[label=(\roman*)]
+  \item The plane is $\R^2$, with $x = (x_1, x_2)$, $r = |x|$ the Euclidean norm and, for
+        $x \neq 0$, polar coordinates $x = (r\cos\theta, r\sin\theta)$. (In Lean:
+        \texttt{EuclideanSpace} $\R$ \texttt{(Fin 2)}.) The functions $\varphi$, $h$ and $W$ are complex-valued; others, such as $\psi_1, \psi_2, h_1, h_2$, are real-valued, and the codomain is always stated. Disc and annulus: $B_R = \{|x| < R\}$, $\overline{B}_R = \{|x|\le R\}$.
+  \item $\Delta = \partial_{x_1}^2 + \partial_{x_2}^2$, acting on real-, complex- or $\R^m$-valued
+        functions componentwise (for complex-valued functions, on real and imaginary parts
+        separately).
+  \item For $u, v \colon \R^2 \to \C$, $\ip{u}{v} := \Re \int_{\R^2} u\,\overline{v}\,dx$
+        (Lebesgue measure on $\R^2$), whenever $u\overline v$ is integrable.
+  \item $C^2(\Omega)$: functions $\Omega \to \C$ (or $\R^m$) whose partial derivatives up to
+        order two exist and are continuous on the open set $\Omega$.
+  \item A function $h \colon \R^2 \to \C$ is \emph{locally H\"older continuous} if there is
+        $\beta \in (0,1)$ such that for every compact $K \subset \R^2$ there is $C_K$ with
+        $|h(x) - h(y)| \le C_K |x-y|^{\beta}$ for all $x, y \in K$.
+\end{enumerate}
+
+\section{The vortex profile (assumed properties)}\label{sec:profile}
+
+\begin{assumption}[P]
+$w \colon [0,\infty) \to \R$ is a fixed function with the following properties.
+\begin{enumerate}[label=(P\arabic*)]
+  \item $w \in C^2((0,\infty))$ and
+        $w'' + \tfrac1r w' - \tfrac{1}{r^2} w + (1 - w^2) w = 0$ on $(0,\infty)$;
+        $w(0) = 0$ and $w(r) \to 1$ as $r \to \infty$. \hfill (1.3)
+  \item $0 < w(r) < 1$ and $w'(r) > 0$ for all $r > 0$.
+  \item There is $a > 0$ with $w(r) = a r + O(r^3)$ and $w'(r) = a + O(r^2)$ as $r \to 0^+$.
+  \item $w(r) = 1 - \tfrac{1}{2r^2} + O(r^{-4})$ and $w'(r) = r^{-3} + O(r^{-5})$ as
+        $r \to \infty$. \hfill (1.4)
+  \item The function $W \colon \R^2 \to \C$, $W(x) = w(|x|)\,\tfrac{x_1 + i x_2}{|x|}$ for
+        $x \ne 0$, $W(0) = 0$ (that is, $W = w(r)e^{i\theta}$), is $C^\infty$ on $\R^2$.
+\end{enumerate}
+\end{assumption}
+
+\noindent
+All of these hold for the standard degree-one vortex profile. (P3, second half) and (P5) are
+not stated in the paper but are standard; (P3) is needed for the blow-up argument in the proof
+of Proposition~5.6, (P5) so that $\partial W/\partial x_j$ and $L$ below are classical.
+
+\begin{definition}[Linearised operator]
+For $\varphi \in C^2(\R^2)$,
+\[
+  L[\varphi] := \Delta\varphi + (1 - |W|^2)\,\varphi - 2\,\Re\bigl(\overline{W}\varphi\bigr)\,W.
+  \tag{1.5}
+\]
+\end{definition}
+
+\section{Assumed results from the literature}\label{sec:assumed}
+
+These are taken as hypotheses of the formal theorems. (A1) is a theorem about this particular
+operator; (A2)--(A4) are general results of elliptic theory, not specific to the equations of the
+paper. Everything else that the paper calls ``standard'' is proved (see Section~\ref{sec:route}).
+
+\begin{assumption}[A1: nondegeneracy; {[14, Thm~3.2]}, {[4, Thm~1.1]}]
+If $\varphi \in C^2(\R^2)$ is bounded and $L[\varphi] = 0$ on $\R^2$, then
+$\varphi = c_0\, iW + c_1\, \partial_{x_1} W + c_2\, \partial_{x_2} W$ for some
+$c_0, c_1, c_2 \in \R$.
+\end{assumption}
+
+\begin{assumption}[A2: Dirichlet problem for scalar operators; Gilbarg--Trudinger, Thm~6.13]
+Let $\Omega \subset \R^2$ be a bounded open set satisfying an exterior sphere condition: for every
+$y \in \partial\Omega$ there is a closed disc $D$ with $D \cap \overline\Omega = \{y\}$. Let
+$b \colon \Omega \to \R^2$ and $c, f \colon \Omega \to \R$ be bounded and locally H\"older continuous,
+with $c \le 0$. Then for every continuous $g \colon \partial\Omega \to \R$ there is
+$u \in C^2(\Omega) \cap C(\overline\Omega)$ with
+\[
+  \Delta u + b\cdot\nabla u + c\,u = f \ \text{ in } \Omega, \qquad u = g \ \text{ on } \partial\Omega.
+\]
+\end{assumption}
+
+\noindent
+In the general statements (A3)--(A4), operators act on $u \colon \Omega \to \R^m$,
+$m \in \{1, 2\}$, $\Omega \subseteq \R^2$ open, and have the form
+\[
+  P u = \Delta u + B_1\, \partial_{x_1} u + B_2\, \partial_{x_2} u + C u,
+\]
+with matrix-valued coefficients $B_1, B_2, C \colon \Omega \to \R^{m \times m}$.
+
+\begin{assumption}[A3: interior gradient estimate]
+For every $\Lambda > 0$ there is $K(\Lambda)$ such that if $\Omega = B_1$, the coefficients of $P$
+are continuous with $|B_j|, |C| \le \Lambda$ on $B_1$, and $u \in C^2(B_1)$ satisfies $Pu = f$, then
+$|\nabla u(0)| \le K(\Lambda)\bigl(\sup_{B_1} |u| + \sup_{B_1} |f|\bigr)$.
+\end{assumption}
+
+\begin{assumption}[A4: regularity of distributional solutions]
+Let the coefficients of $P$ and $f \colon \Omega \to \R^m$ be locally H\"older continuous, and let
+$u \colon \Omega \to \R^m$ be locally Lipschitz and a distributional solution of $Pu = f$, that is,
+\[
+  \int_\Omega \Bigl( u\cdot\Delta\eta + \sum_{j} (B_j\,\partial_{x_j}u)\cdot\eta
+  + (Cu)\cdot\eta \Bigr)\,dx = \int_\Omega f\cdot\eta\,dx
+\]
+for every $C^\infty$ function $\eta \colon \Omega \to \R^m$ with compact support, where
+$\partial_{x_j} u$ are the almost-everywhere derivatives of $u$ (Rademacher's theorem). Then
+$u \in C^2(\Omega)$, and hence $Pu = f$ holds pointwise.
+\end{assumption}
+
+\section{Norms and orthogonality}\label{sec:norms}
+
+\begin{definition}[Components]
+For $\varphi, h \colon \R^2 \to \C$ and $x \neq 0$ define $\psi$, $h_1$, $h_2$ by
+\[
+  \psi(x) := \frac{\varphi(x)}{iW(x)}, \quad \psi_1 = \Re\psi,\ \psi_2 = \Im\psi, \qquad
+  h_1(x) + i h_2(x) := \frac{h(x)}{iW(x)}.
+\]
+These are only ever evaluated at $x \neq 0$, where $W(x) \neq 0$ by (P2).
+\end{definition}
+
+\begin{definition}[Norms (1.15), (1.16)]
+With values in $[0,\infty]$,
+\begin{align*}
+  \nstar{\varphi} &:= \sup_{0<|x|\le 2} |\psi(x)|
+     + \sup_{|x|\ge 2} (\log|x|)^{-2} |\psi_1(x)| + \sup_{|x|\ge 2} |\psi_2(x)|,\\
+  \nss{h} &:= \sup_{|x|\le 2} |h(x)| + \sup_{|x|\ge 2} |x|^2 |h_1(x)| + \sup_{|x|\ge 2} |h_2(x)|.
+\end{align*}
+\end{definition}
+
+\noindent
+The first supremum in $\nstar{\cdot}$ is over the punctured disc, where $\psi$ is defined; that in
+$\nss{\cdot}$ is of $h$ itself, which needs no division.
+
+\begin{definition}[Orthogonality (1.12)]
+$h$ \emph{satisfies the orthogonality conditions} if, for $j = 1, 2$, the function
+$h\,\overline{\partial_{x_j} W}$ is integrable on $\R^2$ and
+$\ip{h}{\partial_{x_j} W} = \Re\int_{\R^2} h\,\overline{\partial_{x_j} W}\,dx = 0$.
+\end{definition}
+
+\noindent
+Integrability is automatic when $\nss{h} < \infty$ (the integrand is bounded near $0$ and
+$O(r^{-3})$ at infinity by (P4)); it is written into the definition so that the condition never
+depends on how Lean treats non-integrable functions (Lean's integral of such a function is $0$).
+No condition $\ip{h}{iW} = 0$ is imposed (Remark~1.2 of the paper explains why).
+
+\section{The theorems}\label{sec:theorems}
+
+\begin{theorem}[Theorem~1.1]\label{thm:A}
+Assume (P) and (A1)--(A4). There is a constant $C > 0$ such that for every locally H\"older
+continuous $h \colon \R^2 \to \C$ with $\nss{h} < \infty$ that satisfies the orthogonality conditions,
+there exists $\varphi \in C^2(\R^2)$ with
+\[
+  L[\varphi] = h \ \text{ on } \R^2 \qquad \text{and} \qquad \nstar{\varphi} \le C\,\nss{h}.
+\]
+\end{theorem}
+
+\begin{theorem}[Remark~1.2]\label{thm:B}
+Assume (P) and (A1)--(A4). There is a constant $C > 0$ such that for every locally H\"older
+continuous $h \colon \R^2 \to \C$ with $\nss{h} < \infty$ there exists $\varphi \in C^2(\R^2)$ with
+$L[\varphi] = h$ on $\R^2$ and
+\[
+  \sup_{0 < |x| \le 2} |\psi(x)| \le C\nss{h}, \qquad
+  |\psi_1(x)| \le C |x|\, \nss{h}, \quad |\psi_2(x)| \le C\nss{h} \quad (|x| \ge 2).
+\]
+\end{theorem}
+
+\noindent
+In both theorems $C$ depends only on $w$: not on $h$, nor on its H\"older exponent or constants.
+The quantifiers are in the order ``there is $C$, for every $h$, there is $\varphi$''.
+
+\section{Where the proof differs from the paper}\label{sec:route}
+
+The statements are exactly those of the paper. The proof follows the paper, except for the
+following points, where the paper cites a specific result or says ``standard''.
+
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Maximum principle.} The weak maximum principle for scalar operators
+        $\Delta + b\cdot\nabla + c$ with $c \le 0$ on bounded domains is proved. It gives uniqueness
+        in (A2) and the barrier arguments of Lemmas~2.2 and~5.2--5.4.
+  \item \textbf{Dirichlet problems in Lemmas~5.2--5.4} come from (A2), applied to annuli and the
+        operators $\Delta + 2\frac{w'}{w}\partial_r$ and $\Delta + 2\frac{w'}{w}\partial_r - 2w^2$.
+  \item \textbf{Gradient bounds in Proposition~5.5.} Away from the boundary circles they follow from
+        (A3), rescaled. Near the circles, where the solutions vanish, a barrier built from an exterior
+        disc bounds $|v(x)|$ by a constant times $\operatorname{dist}(x, \partial A)$ times the data;
+        (A3) on a disc of radius comparable to that distance then bounds $|\nabla v(x)|$. All constants
+        must be independent of $\rho$ and $R$.
+  \item \textbf{Compactness lemma (Propositions~5.1 and~5.6).} If the coefficients of operators $P_n$
+        converge locally uniformly to those of $P$ (locally H\"older), $u_n \in C^2(\Omega)$ are locally
+        uniformly bounded with $P_n u_n = f_n$, and $f_n \to f$ locally uniformly with $f$ locally H\"older,
+        then a subsequence of $(u_n)$ converges locally uniformly to some $u \in C^2(\Omega)$ with
+        $Pu = f$. Proof: (A3), rescaled, makes $(u_n)$ locally equicontinuous; Arzel\`a--Ascoli gives a
+        limit, which is locally Lipschitz and a distributional solution; (A4) applies.
+  \item \textbf{Approximate solutions in Propositions~5.1 and~5.6.} The paper solves the Dirichlet
+        problem for $L$ on $B_R$ using [4, 11]. Instead, for right-hand sides $h$ with Fourier modes
+        $3 \le k \le N$ only, the solution $\varphi_{R,N}$ on $B_R$ with $\varphi_{R,N} = 0$ on
+        $\partial B_R$ is built mode by mode from the ODE (1.23): the solutions regular at $0$
+        (Section~4) plus a particular solution from the representation formula (Proposition~4.8).
+        Solvability rests on uniqueness, proved by an energy identity: writing (1.23) as
+        \[
+          \bigl(w^2 r\,\phi'\bigr)' - \frac{w^2}{r}\,M\phi = w^2 r\,\tilde h,
+          \qquad
+          M = \begin{pmatrix} k^2 & \pm 2k \\ \pm 2k & k^2 + 2w^2r^2 \end{pmatrix},
+        \]
+        a homogeneous solution regular at $0$ with $\phi(R) = 0$ satisfies
+        $\int_0^R \bigl(w^2 r\,|\phi'|^2 + \frac{w^2}{r}\,\phi\cdot M\phi\bigr)\,dr = 0$, and $M$ has
+        eigenvalues at least $k^2 - 2k > 0$ for $k \ge 3$, so $\phi \equiv 0$.
+        The argument of Proposition~5.6 then bounds $\sup_{B_R}|\psi_{R,N}|$ by $C\nss{h}$ with $C$
+        independent of $R$ and $N$. Where that argument takes a contradiction sequence, the case of
+        bounded radii $R_m$ is handled by the same energy uniqueness and the boundary barrier of~(c).
+        Finally, the Fourier partial sums of $h$ converge locally uniformly (Dini--Lipschitz test), and
+        the compactness lemma~(d) lets $R, N \to \infty$ to give the solution on $\R^2$.
+\end{enumerate}
+
+\section{Status of the review}\label{sec:open}
+
+\begin{enumerate}
+  \item The operator (1.5) is confirmed correct (author, 24 Nov 2026).
+  \item The profile assumptions (P1)--(P5) are approved (author, 24 Nov 2026). The list may need to
+        grow during the proof, but only by standard, true properties of $w$, each approved by the
+        author.
+  \item (P) and (A1)--(A4) are confirmed true (author, 24 Nov 2026; (A2)--(A4) in their revised,
+        general form).
+  \item Assumptions are restricted to general elliptic theory where possible, at the author's request;
+        only (P) and (A1) concern this particular equation (agreed 24 Nov 2026).
+  \item The changes to the proof listed in Section~\ref{sec:route} are approved (author,
+        24 Nov 2026).
+\end{enumerate}
+
+\end{document}
