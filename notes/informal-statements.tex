@@ -165,7 +165,8 @@ $\ip{h}{\partial_{x_j} W} = \int_{\R^2} \Re\bigl(h\,\overline{\partial_{x_j} W}\
 \end{definition}
 
 \noindent
-Integrability is automatic when $\nss{h} < \infty$ (the integrand is bounded near $0$ and
+For measurable $h$ with $\nss{h} < \infty$ (in particular for the locally H\"older $h$ in
+Theorems~\ref{thm:A} and~\ref{thm:B}), integrability is automatic (the integrand is bounded near $0$ and
 $O(r^{-3})$ at infinity by (P4)); it is written into the definition so that the condition never
 depends on how Lean treats non-integrable functions (Lean's integral of such a function is $0$).
 Only the real part is required to be integrable. Writing $\partial_{x_j} W = iW(\chi_1 + i\chi_2)$,

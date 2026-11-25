@@ -207,8 +207,9 @@ def DistributionalRegularity : Prop :=
 /-! ## Section 4: Norms and orthogonality -/
 
 /-- The quotient `ψ = φ / (iW)` (Definition "Components" in Section 4 of the note). For
-`φ` it gives `ψ₁ = Re ψ` and `ψ₂ = Im ψ`; for `h` it gives `h₁ + i h₂ = h / (iW)`. It is only
-evaluated at `x ≠ 0`, where `W(x) ≠ 0` by (P2). -/
+`φ` it gives `ψ₁ = Re ψ` and `ψ₂ = Im ψ`; for `h` it gives `h₁ + i h₂ = h / (iW)`. It is defined
+at every point, with `ψ(0) = 0` by Lean's convention `x / 0 = 0`; this value is never used, since
+every statement involving `ψ` restricts to `x ≠ 0`, where `W(x) ≠ 0` by (P2). -/
 noncomputable def psi (w : ℝ → ℝ) (φ : ℝ² → ℂ) (x : ℝ²) : ℂ :=
   φ x / (Complex.I * vortex w x)
 
